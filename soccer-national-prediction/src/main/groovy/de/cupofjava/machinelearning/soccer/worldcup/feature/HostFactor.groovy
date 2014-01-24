@@ -21,8 +21,8 @@ final class HostFactor implements Feature {
         Matches.allHomeMatchesBefore(matchDate, homeTeam),
         Matches.allAwayMatchesBefore(matchDate, homeTeam))
     hostFactor[1] = hostFactorForMatches(
-        Matches.lastHomeMatchesBefore(6, matchDate, homeTeam),
-        Matches.lastAwayMatchesBefore(6, matchDate, homeTeam))
+        Matches.lastHomeMatchesBefore(matchDate, homeTeam),
+        Matches.lastAwayMatchesBefore(matchDate, homeTeam))
     hostFactor
   }
 

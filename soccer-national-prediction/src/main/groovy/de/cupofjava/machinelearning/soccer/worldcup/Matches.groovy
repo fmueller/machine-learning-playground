@@ -7,7 +7,9 @@ import org.joda.time.LocalDate
  */
 class Matches {
 
-  private static Set<Match> matches = new HashSet<>()
+  private static final int LAST_MATCHES = 6
+
+  private static final Set<Match> MATCHES = new HashSet<>()
 
   private static Comparator<Match> BY_DATE_DESCENDING = new Comparator<Match>() {
     @Override
@@ -17,39 +19,39 @@ class Matches {
   }
 
   static def storeAllMatches(Collection<Match> matches) {
-    Matches.matches.addAll(matches)
+    MATCHES.addAll(matches)
   }
 
   static Collection<Match> allMatches() {
-    new HashSet<Match>(matches)
+    new HashSet<Match>(MATCHES)
   }
 
   static Collection<Match> allMatchesBefore(LocalDate matchDate, String team) {
-    matches.grep { matchDate.isAfter(it.getDate()) && it.hasPlayed(team) }
+    MATCHES.grep { matchDate.isAfter(it.getDate()) && it.hasPlayed(team) }
   }
 
   static Collection<Match> allHomeMatchesBefore(LocalDate matchDate, String homeTeam) {
-    matches.grep { matchDate.isAfter(it.getDate()) && it.isHomeTeam(homeTeam) }
+    MATCHES.grep { matchDate.isAfter(it.getDate()) && it.isHomeTeam(homeTeam) }
   }
 
   static Collection<Match> allAwayMatchesBefore(LocalDate matchDate, String awayTeam) {
-    matches.grep { matchDate.isAfter(it.getDate()) && it.isAwayTeam(awayTeam) }
+    MATCHES.grep { matchDate.isAfter(it.getDate()) && it.isAwayTeam(awayTeam) }
   }
 
-  static Collection<Match> lastMatchesBefore(int numberOfMatches, LocalDate matchDate, String team) {
-    takeUpTo(numberOfMatches, allMatchesBefore(matchDate, team).sort(BY_DATE_DESCENDING))
+  static Collection<Match> lastMatchesBefore(LocalDate matchDate, String team) {
+    takeUpTo(LAST_MATCHES, allMatchesBefore(matchDate, team).sort(BY_DATE_DESCENDING))
   }
 
-  static Collection<Match> lastHomeMatchesBefore(int numberOfMatches, LocalDate matchDate, String homeTeam) {
-    takeUpTo(numberOfMatches, allHomeMatchesBefore(matchDate, homeTeam).sort(BY_DATE_DESCENDING))
+  static Collection<Match> lastHomeMatchesBefore(LocalDate matchDate, String homeTeam) {
+    takeUpTo(LAST_MATCHES, allHomeMatchesBefore(matchDate, homeTeam).sort(BY_DATE_DESCENDING))
   }
 
-  static Collection<Match> lastAwayMatchesBefore(int numberOfMatches, LocalDate matchDate, String awayTeam) {
-    takeUpTo(numberOfMatches, allAwayMatchesBefore(matchDate, awayTeam).sort(BY_DATE_DESCENDING))
+  static Collection<Match> lastAwayMatchesBefore(LocalDate matchDate, String awayTeam) {
+    takeUpTo(LAST_MATCHES, allAwayMatchesBefore(matchDate, awayTeam).sort(BY_DATE_DESCENDING))
   }
 
   static double homeWinRatio() {
-    100 * matches.grep { it.isHomeWin() }.size() / (double) matches.size()
+    100 * MATCHES.grep { it.isHomeWin() }.size() / (double) MATCHES.size()
   }
 
   private static Collection<Match> takeUpTo(int numberOfMatches, List<Match> matches) {

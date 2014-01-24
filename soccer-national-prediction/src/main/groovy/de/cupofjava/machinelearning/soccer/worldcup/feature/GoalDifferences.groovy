@@ -9,8 +9,6 @@ import org.joda.time.LocalDate
  */
 final class GoalDifferences implements Feature {
 
-  private static final int LAST_MATCHES = 6
-
   @Override
   int getSize() {
     4
@@ -19,10 +17,10 @@ final class GoalDifferences implements Feature {
   @Override
   double[] compute(LocalDate matchDate, String homeTeam, String awayTeam) {
     double[] goalDifferences = new double[getSize()]
-    goalDifferences[0] = computeGoalDiff(Matches.lastHomeMatchesBefore(LAST_MATCHES, matchDate, homeTeam), homeTeam)
-    goalDifferences[1] = computeGoalDiff(Matches.lastMatchesBefore(LAST_MATCHES, matchDate, homeTeam), homeTeam)
-    goalDifferences[2] = computeGoalDiff(Matches.lastAwayMatchesBefore(LAST_MATCHES, matchDate, awayTeam), awayTeam)
-    goalDifferences[3] = computeGoalDiff(Matches.lastMatchesBefore(LAST_MATCHES, matchDate, awayTeam), awayTeam)
+    goalDifferences[0] = computeGoalDiff(Matches.lastHomeMatchesBefore(matchDate, homeTeam), homeTeam)
+    goalDifferences[1] = computeGoalDiff(Matches.lastMatchesBefore(matchDate, homeTeam), homeTeam)
+    goalDifferences[2] = computeGoalDiff(Matches.lastAwayMatchesBefore(matchDate, awayTeam), awayTeam)
+    goalDifferences[3] = computeGoalDiff(Matches.lastMatchesBefore(matchDate, awayTeam), awayTeam)
     goalDifferences
   }
 
