@@ -26,7 +26,7 @@ import org.encog.util.concurrency.EngineConcurrency
  * @author fmueller
  */
 @Slf4j
-class PredictGamesMain {
+class PredictMatchesMain {
 
   private static double TRAINING_DATA_RATIO = 0.6
   private static double VALIDATION_DATA_RATIO = 0.2
