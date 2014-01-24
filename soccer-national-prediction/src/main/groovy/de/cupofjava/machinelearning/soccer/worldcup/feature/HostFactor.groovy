@@ -15,11 +15,16 @@ final class HostFactor implements Feature {
 
   @Override
   double[] compute(LocalDate matchDate, String homeTeam, String awayTeam) {
-    int homePoints = Matches.allHomeMatchesBefore(matchDate, homeTeam).grep{ it.isHomeWin() }.size() * 3 + Matches.allHomeMatchesBefore(matchDate, homeTeam).grep{ it.isDraw() }.size()
-    int awayPoints = Matches.allAwayMatchesBefore(matchDate, homeTeam).grep{ it.isAwayWin() }.size() * 3 + Matches.allAwayMatchesBefore(matchDate, homeTeam).grep{ it.isDraw() }.size()
+    double allHomeMatches = Matches.allHomeMatchesBefore(matchDate, homeTeam).size()
+    double allAwayMatches = Matches.allAwayMatchesBefore(matchDate, homeTeam).size()
+
+    double homePointsRatio = (Matches.allHomeMatchesBefore(matchDate, homeTeam).grep { it.isHomeWin() }.size() * 3
+        + Matches.allHomeMatchesBefore(matchDate, homeTeam).grep { it.isDraw() }.size()) / allHomeMatches > 0 ? allHomeMatches : 1.0
+    double awayPointsRatio = (Matches.allAwayMatchesBefore(matchDate, homeTeam).grep { it.isAwayWin() }.size() * 3
+        + Matches.allAwayMatchesBefore(matchDate, homeTeam).grep { it.isDraw() }.size()) / allAwayMatches > 0 ? allAwayMatches : 1.0
 
     double[] hostFactor = new double[getSize()]
-    hostFactor[0] = homePoints / (double) (awayPoints > 0 ? awayPoints : 1)
+    hostFactor[0] = homePointsRatio - awayPointsRatio
     hostFactor
   }
 }

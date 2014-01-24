@@ -129,7 +129,7 @@ class PredictMatchesMain {
       epoch++
     }
     trainer.finishTraining()
-    log.info("Finished training after {} iteration with best error rate of {}.", epoch, best)
+    log.info("Finished training after {} iterations with best error rate of {}.", epoch, best)
   }
 
   private static Collection<Match> chooseRandomMatches(List<Match> matches, int numberOfMatches) {
