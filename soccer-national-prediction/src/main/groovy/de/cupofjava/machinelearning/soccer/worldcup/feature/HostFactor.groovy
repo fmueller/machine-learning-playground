@@ -28,10 +28,10 @@ final class HostFactor implements Feature {
 
   private double hostFactorForMatches(Collection<Match> homeMatches, Collection<Match> awayMatches) {
     double possibleHomePoints = Math.max(1.0, homeMatches.size() * 3.0)
-    double possiblaeAwayPoints = Math.max(1.0, awayMatches.size() * 3.0)
+    double possibleAwayPoints = Math.max(1.0, awayMatches.size() * 3.0)
 
     double homePointsRatio = (homeMatches.grep { it.isHomeWin() }.size() * 3 + homeMatches.grep { it.isDraw() }.size()) / possibleHomePoints
-    double awayPointsRatio = (awayMatches.grep { it.isAwayWin() }.size() * 3 + awayMatches.grep { it.isDraw() }.size()) / possiblaeAwayPoints
+    double awayPointsRatio = (awayMatches.grep { it.isAwayWin() }.size() * 3 + awayMatches.grep { it.isDraw() }.size()) / possibleAwayPoints
 
     homePointsRatio - awayPointsRatio
   }
