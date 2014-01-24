@@ -9,9 +9,11 @@ import org.joda.time.LocalDate
  */
 final class GoalAverages implements Feature {
 
+  private static final int LAST_MATCHES = 6
+
   @Override
   int getSize() {
-    4
+    8
   }
 
   @Override
@@ -21,6 +23,10 @@ final class GoalAverages implements Feature {
     goalAverages[1] = goalAverage(Matches.allAwayMatchesBefore(matchDate, awayTeam).grep{ it.isAwayWin() }, awayTeam)
     goalAverages[2] = goalAverage(Matches.allHomeMatchesBefore(matchDate, homeTeam).grep{ it.isAwayWin() }, homeTeam)
     goalAverages[3] = goalAverage(Matches.allAwayMatchesBefore(matchDate, awayTeam).grep{ it.isHomeWin() }, awayTeam)
+    goalAverages[4] = goalAverage(Matches.lastHomeMatchesBefore(LAST_MATCHES, matchDate, homeTeam).grep{ it.isHomeWin() }, homeTeam)
+    goalAverages[5] = goalAverage(Matches.lastAwayMatchesBefore(LAST_MATCHES, matchDate, awayTeam).grep{ it.isAwayWin() }, awayTeam)
+    goalAverages[6] = goalAverage(Matches.lastHomeMatchesBefore(LAST_MATCHES, matchDate, homeTeam).grep{ it.isAwayWin() }, homeTeam)
+    goalAverages[7] = goalAverage(Matches.lastAwayMatchesBefore(LAST_MATCHES, matchDate, awayTeam).grep{ it.isHomeWin() }, awayTeam)
     goalAverages
   }
 
