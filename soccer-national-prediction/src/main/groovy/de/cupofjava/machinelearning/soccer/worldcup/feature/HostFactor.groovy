@@ -1,5 +1,6 @@
 package de.cupofjava.machinelearning.soccer.worldcup.feature
 
+import de.cupofjava.machinelearning.soccer.worldcup.Match
 import de.cupofjava.machinelearning.soccer.worldcup.Matches
 import org.joda.time.LocalDate
 
@@ -10,21 +11,28 @@ final class HostFactor implements Feature {
 
   @Override
   int getSize() {
-    1
+    2
   }
 
   @Override
   double[] compute(LocalDate matchDate, String homeTeam, String awayTeam) {
-    double allHomeMatches = Matches.allHomeMatchesBefore(matchDate, homeTeam).size()
-    double allAwayMatches = Matches.allAwayMatchesBefore(matchDate, homeTeam).size()
-
-    double homePointsRatio = (Matches.allHomeMatchesBefore(matchDate, homeTeam).grep { it.isHomeWin() }.size() * 3
-        + Matches.allHomeMatchesBefore(matchDate, homeTeam).grep { it.isDraw() }.size()) / allHomeMatches > 0 ? allHomeMatches : 1.0
-    double awayPointsRatio = (Matches.allAwayMatchesBefore(matchDate, homeTeam).grep { it.isAwayWin() }.size() * 3
-        + Matches.allAwayMatchesBefore(matchDate, homeTeam).grep { it.isDraw() }.size()) / allAwayMatches > 0 ? allAwayMatches : 1.0
-
     double[] hostFactor = new double[getSize()]
-    hostFactor[0] = homePointsRatio - awayPointsRatio
+    hostFactor[0] = hostFactorForMatches(
+        Matches.allHomeMatchesBefore(matchDate, homeTeam),
+        Matches.allAwayMatchesBefore(matchDate, homeTeam))
+    hostFactor[1] = hostFactorForMatches(
+        Matches.lastHomeMatchesBefore(6, matchDate, homeTeam),
+        Matches.lastAwayMatchesBefore(6, matchDate, homeTeam))
     hostFactor
+  }
+
+  private double hostFactorForMatches(Collection<Match> homeMatches, Collection<Match> awayMatches) {
+    double possibleHomePoints = Math.max(1.0, homeMatches.size() * 3.0)
+    double possiblaeAwayPoints = Math.max(1.0, awayMatches.size() * 3.0)
+
+    double homePointsRatio = (homeMatches.grep { it.isHomeWin() }.size() * 3 + homeMatches.grep { it.isDraw() }.size()) / possibleHomePoints
+    double awayPointsRatio = (awayMatches.grep { it.isAwayWin() }.size() * 3 + awayMatches.grep { it.isDraw() }.size()) / possiblaeAwayPoints
+
+    homePointsRatio - awayPointsRatio
   }
 }
