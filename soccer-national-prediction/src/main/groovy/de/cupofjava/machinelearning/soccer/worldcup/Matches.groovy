@@ -55,10 +55,6 @@ class Matches {
   }
 
   private static Collection<Match> takeUpTo(int numberOfMatches, List<Match> matches) {
-    if (matches.size() < numberOfMatches) {
-      matches
-    } else {
-      matches.subList(0, numberOfMatches)
-    }
+    matches.size() >= numberOfMatches ? matches.subList(0, numberOfMatches) : matches
   }
 }

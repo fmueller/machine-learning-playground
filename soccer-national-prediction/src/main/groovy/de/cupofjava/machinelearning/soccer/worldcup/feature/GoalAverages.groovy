@@ -37,6 +37,6 @@ final class GoalAverages implements Feature {
         goals += match.getAwayGoals()
       }
     }
-    goals / (10.0 * (matches.size() > 0 ? matches.size() : 1))
+    goals / Math.max(1.0, 10.0 * matches.size())
   }
 }

@@ -33,6 +33,6 @@ final class GoalDifferences implements Feature {
         goalDifference += match.getAwayGoals() - match.getHomeGoals()
       }
     }
-    goalDifference / (10.0 * (matches.size() > 0 ? matches.size() : 1))
+    goalDifference / Math.max(1.0, 10.0 * matches.size())
   }
 }
