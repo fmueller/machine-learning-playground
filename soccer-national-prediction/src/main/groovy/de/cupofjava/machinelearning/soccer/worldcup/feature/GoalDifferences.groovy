@@ -11,16 +11,20 @@ final class GoalDifferences implements Feature {
 
   @Override
   int getSize() {
-    4
+    8
   }
 
   @Override
   double[] compute(LocalDate matchDate, String homeTeam, String awayTeam) {
     double[] goalDifferences = new double[getSize()]
-    goalDifferences[0] = computeGoalDiff(Matches.lastHomeMatchesBefore(matchDate, homeTeam), homeTeam)
-    goalDifferences[1] = computeGoalDiff(Matches.lastMatchesBefore(matchDate, homeTeam), homeTeam)
-    goalDifferences[2] = computeGoalDiff(Matches.lastAwayMatchesBefore(matchDate, awayTeam), awayTeam)
-    goalDifferences[3] = computeGoalDiff(Matches.lastMatchesBefore(matchDate, awayTeam), awayTeam)
+    goalDifferences[0] = computeGoalDiff(Matches.allHomeMatchesBefore(matchDate, homeTeam), homeTeam)
+    goalDifferences[1] = computeGoalDiff(Matches.allMatchesBefore(matchDate, homeTeam), homeTeam)
+    goalDifferences[2] = computeGoalDiff(Matches.allAwayMatchesBefore(matchDate, awayTeam), awayTeam)
+    goalDifferences[3] = computeGoalDiff(Matches.allMatchesBefore(matchDate, awayTeam), awayTeam)
+    goalDifferences[4] = computeGoalDiff(Matches.lastHomeMatchesBefore(matchDate, homeTeam), homeTeam)
+    goalDifferences[5] = computeGoalDiff(Matches.lastMatchesBefore(matchDate, homeTeam), homeTeam)
+    goalDifferences[6] = computeGoalDiff(Matches.lastAwayMatchesBefore(matchDate, awayTeam), awayTeam)
+    goalDifferences[7] = computeGoalDiff(Matches.lastMatchesBefore(matchDate, awayTeam), awayTeam)
     goalDifferences
   }
 
