@@ -94,8 +94,8 @@ class PredictMatchesMain {
     log.info("Correct draws: {}", correctDraw)
     log.info("Correct away wins: {}", correctAwayWin)
 
-    log.info("Home win frequency on test data set: {}%", String.format("%.2f", 100 * testMatches.grep { it.isHomeWin() }.size() / (double) testMatches.size()))
-    log.info("Home win frequency on whole data set: {}%", String.format("%.2f", Matches.homeWinFrequency()))
+    log.info("Home win ratio on test data set: {}%", String.format("%.2f", 100 * testMatches.grep { it.isHomeWin() }.size() / (double) testMatches.size()))
+    log.info("Home win ratio on whole data set: {}%", String.format("%.2f", Matches.homeWinRatio()))
 
     log.info("Accuracy on test data: {}%", String.format("%.2f", 100 * correct / (double) testMatches.size()))
     // TODO calculate F1 score

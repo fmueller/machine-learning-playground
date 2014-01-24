@@ -48,7 +48,7 @@ class Matches {
     takeUpTo(numberOfMatches, allAwayMatchesBefore(matchDate, awayTeam).sort(BY_DATE_DESCENDING))
   }
 
-  static double homeWinFrequency() {
+  static double homeWinRatio() {
     100 * matches.grep { it.isHomeWin() }.size() / (double) matches.size()
   }
 
