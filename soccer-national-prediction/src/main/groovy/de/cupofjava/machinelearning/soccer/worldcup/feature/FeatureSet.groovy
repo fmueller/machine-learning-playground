@@ -4,7 +4,10 @@ import de.cupofjava.machinelearning.soccer.worldcup.Match
 import org.encog.ml.data.MLData
 import org.encog.ml.data.MLDataSet
 import org.encog.ml.data.basic.BasicMLData
+import org.encog.ml.data.basic.BasicMLDataPair
 import org.encog.ml.data.basic.BasicMLDataSet
+
+import static groovyx.gpars.GParsPool.withPool
 
 /**
  * @author fmueller
@@ -23,11 +26,11 @@ class FeatureSet {
   }
 
   MLDataSet computeDataSet(Collection<Match> matches) {
-    def dataSet = new BasicMLDataSet()
-    for (Match match : matches) {
-      dataSet.add(computeInputData(match), computeIdealOutput(match))
+    withPool {
+      new BasicMLDataSet(matches.parallel.map { match ->
+        new BasicMLDataPair(computeInputData(match), computeIdealOutput(match))
+      }.collection)
     }
-    dataSet
   }
 
   MLData computeInputData(Match match) {

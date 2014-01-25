@@ -20,6 +20,8 @@ import org.encog.neural.networks.layers.BasicLayer
 import org.encog.neural.networks.training.propagation.resilient.ResilientPropagation
 import org.encog.util.concurrency.EngineConcurrency
 
+import static groovyx.gpars.GParsPool.withPool
+
 /**
  * TODO javadoc
  *
@@ -78,25 +80,24 @@ class PredictMatchesMain {
     int correctDraw = 0
     int correctAwayWin = 0
 
-    Collection<MatchPrediction> predictions = new LinkedList<>()
-    for (Match match : testMatches) {
+    def predictions = withPool {
+      testMatches.parallel.map { match ->
+        MLData input = featureSet.computeInputData(match)
+        double[] output = network.compute(input).getData()
 
-      MLData input = featureSet.computeInputData(match)
-      double[] output = network.compute(input).getData()
-
-      def prediction = new MatchPrediction(match, output)
-      predictions.add(prediction)
-
-      if (match.isHomeWin() && prediction.isHomeWinPredicted()) {
-        correct++
-        correctHomeWin++
-      } else if (match.isDraw() && prediction.isDrawPredicted()) {
-        correct++
-        correctDraw++
-      } else if (match.isAwayWin() && prediction.isAwayWinPredicted()) {
-        correct++
-        correctAwayWin++
-      }
+        def prediction = new MatchPrediction(match, output)
+        if (match.isHomeWin() && prediction.isHomeWinPredicted()) {
+          correct++
+          correctHomeWin++
+        } else if (match.isDraw() && prediction.isDrawPredicted()) {
+          correct++
+          correctDraw++
+        } else if (match.isAwayWin() && prediction.isAwayWinPredicted()) {
+          correct++
+          correctAwayWin++
+        }
+        prediction
+      }.collection
     }
 
     log.info("Correct matches: {} of {}", correct, testMatches.size())
@@ -148,9 +149,9 @@ class PredictMatchesMain {
   private static Collection<Match> chooseRandomMatches(matches, numberOfMatches, homeWinRatio, drawRatio, awayWinRatio) {
     Collections.shuffle(matches)
     Set<Match> choosenMatches = new HashSet<>()
-    choosenMatches.addAll(matches.grep{ it.isHomeWin()}.subList(0, (int) Math.round(numberOfMatches * homeWinRatio)))
-    choosenMatches.addAll(matches.grep{ it.isDraw()}.subList(0, (int) Math.round(numberOfMatches * drawRatio)))
-    choosenMatches.addAll(matches.grep{ it.isAwayWin()}.subList(0, (int) Math.round(numberOfMatches * awayWinRatio)))
+    choosenMatches.addAll(matches.grep { it.isHomeWin() }.subList(0, (int) Math.round(numberOfMatches * homeWinRatio)))
+    choosenMatches.addAll(matches.grep { it.isDraw() }.subList(0, (int) Math.round(numberOfMatches * drawRatio)))
+    choosenMatches.addAll(matches.grep { it.isAwayWin() }.subList(0, (int) Math.round(numberOfMatches * awayWinRatio)))
     choosenMatches
   }
 }

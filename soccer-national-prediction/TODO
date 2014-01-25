@@ -1,4 +1,3 @@
-- parallelize computation of features
 - add form feature (form of home team, away team and diff of both - by sum of home wins, home draws, away wins, away draws)
 - add head-to-head feature
 - add matchstatistics feature (number of wins, draws, losts and home wins, home draws, home losts, away wins, away draws, away losts)
