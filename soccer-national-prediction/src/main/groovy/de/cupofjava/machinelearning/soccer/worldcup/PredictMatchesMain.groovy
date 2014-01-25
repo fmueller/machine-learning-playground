@@ -20,6 +20,8 @@ import org.encog.neural.networks.layers.BasicLayer
 import org.encog.neural.networks.training.propagation.resilient.ResilientPropagation
 import org.encog.util.concurrency.EngineConcurrency
 
+import java.util.concurrent.atomic.AtomicInteger
+
 import static groovyx.gpars.GParsPool.withPool
 
 /**
@@ -75,10 +77,10 @@ class PredictMatchesMain {
   }
 
   static void testNetwork(BasicNetwork network, HashSet<Match> testMatches, FeatureSet featureSet) {
-    int correct = 0
-    int correctHomeWin = 0
-    int correctDraw = 0
-    int correctAwayWin = 0
+    AtomicInteger correct = new AtomicInteger(0)
+    AtomicInteger correctHomeWin = new AtomicInteger(0)
+    AtomicInteger correctDraw = new AtomicInteger(0)
+    AtomicInteger correctAwayWin = new AtomicInteger(0)
 
     def predictions = withPool {
       testMatches.parallel.map { match ->
@@ -87,14 +89,14 @@ class PredictMatchesMain {
 
         def prediction = new MatchPrediction(match, output)
         if (match.isHomeWin() && prediction.isHomeWinPredicted()) {
-          correct++
-          correctHomeWin++
+          correct.incrementAndGet()
+          correctHomeWin.incrementAndGet()
         } else if (match.isDraw() && prediction.isDrawPredicted()) {
-          correct++
-          correctDraw++
+          correct.incrementAndGet()
+          correctDraw.incrementAndGet()
         } else if (match.isAwayWin() && prediction.isAwayWinPredicted()) {
-          correct++
-          correctAwayWin++
+          correct.incrementAndGet()
+          correctAwayWin.incrementAndGet()
         }
         prediction
       }.collection
@@ -108,7 +110,7 @@ class PredictMatchesMain {
     log.info("Home win ratio on test data set: {}%", String.format("%.2f", 100 * testMatches.grep { it.isHomeWin() }.size() / (double) testMatches.size()))
     log.info("Home win ratio on whole data set: {}%", String.format("%.2f", Matches.homeWinRatio()))
 
-    log.info("Accuracy on test data: {}%", String.format("%.2f", 100 * correct / (double) testMatches.size()))
+    log.info("Accuracy on test data: {}%", String.format("%.2f", 100 * correct.get() / (double) testMatches.size()))
 
     F1Calculator f1Calculator = new F1Calculator(predictions)
     log.info("F1 Score: {}", f1Calculator.computeDefault())
