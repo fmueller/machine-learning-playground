@@ -80,15 +80,16 @@ class PredictMatchesMain {
       MLData input = featureSet.computeInputData(match)
       double[] output = network.compute(input).getData()
 
-      predictions.add(new MatchPrediction(match, output))
+      def prediction = new MatchPrediction(match, output)
+      predictions.add(prediction)
 
-      if (match.isHomeWin() && output[0] > output[1] && output[0] > output[2]) {
+      if (match.isHomeWin() && prediction.isHomeWinPredicted()) {
         correct++
         correctHomeWin++
-      } else if (match.isDraw() && output[1] > output[0] && output[1] > output[2]) {
+      } else if (match.isDraw() && prediction.isDrawPredicted()) {
         correct++
         correctDraw++
-      } else if (match.isAwayWin() && output[2] > output[0] && output[2] > output[1]) {
+      } else if (match.isAwayWin() && prediction.isAwayWinPredicted()) {
         correct++
         correctAwayWin++
       }
