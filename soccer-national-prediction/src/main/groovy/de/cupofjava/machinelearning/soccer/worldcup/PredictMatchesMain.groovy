@@ -74,9 +74,14 @@ class PredictMatchesMain {
     int correctDraw = 0
     int correctAwayWin = 0
 
+    Collection<MatchPrediction> predictions = new LinkedList<>()
     for (Match match : testMatches) {
+
       MLData input = featureSet.computeInputData(match)
       double[] output = network.compute(input).getData()
+
+      predictions.add(new MatchPrediction(match, output))
+
       if (match.isHomeWin() && output[0] > output[1] && output[0] > output[2]) {
         correct++
         correctHomeWin++
@@ -98,7 +103,10 @@ class PredictMatchesMain {
     log.info("Home win ratio on whole data set: {}%", String.format("%.2f", Matches.homeWinRatio()))
 
     log.info("Accuracy on test data: {}%", String.format("%.2f", 100 * correct / (double) testMatches.size()))
-    // TODO calculate F1 score
+
+    F1Calculator f1Calculator = new F1Calculator(predictions)
+    log.info("F1 Score: {}", f1Calculator.computeDefault())
+    log.info("Weighted F1 Score: {}", f1Calculator.computeWeighted())
   }
 
   private static BasicNetwork createNeuralNetwork(MLDataSet trainingData) {
