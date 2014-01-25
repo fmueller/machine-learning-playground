@@ -40,6 +40,10 @@ class PredictMatchesMain {
     List<Match> matches = new LinkedList<>(Matches.allMatches())
     log.info("Loaded {} matches", matches.size())
 
+    double homeWinRatio = matches.grep { it.isHomeWin() }.size() / (double) matches.size()
+    double drawRatio = matches.grep { it.isDraw() }.size() / (double) matches.size()
+    double awayWinRatio = matches.grep { it.isAwayWin() }.size() / (double) matches.size()
+
     int trainingDataSetSize = (int) Math.round(matches.size() * TRAINING_DATA_RATIO)
     int validationDataSetSize = (int) Math.round(matches.size() * VALIDATION_DATA_RATIO)
 
@@ -48,9 +52,9 @@ class PredictMatchesMain {
 
     log.info("Splitting data into training, validation and test data set...")
     // TODO split match data by exact home win/draw/away win ratio
-    Collection<Match> trainingMatches = chooseRandomMatches(matches, trainingDataSetSize)
+    Collection<Match> trainingMatches = chooseRandomMatches(matches, trainingDataSetSize, homeWinRatio, drawRatio, awayWinRatio)
     matches.removeAll(trainingMatches)
-    Collection<Match> validationMatches = chooseRandomMatches(matches, validationDataSetSize)
+    Collection<Match> validationMatches = chooseRandomMatches(matches, validationDataSetSize, homeWinRatio, drawRatio, awayWinRatio)
     matches.removeAll(validationMatches)
 
     log.info("Computing features...")
@@ -141,8 +145,12 @@ class PredictMatchesMain {
     log.info("Finished training after {} iterations with best error rate of {}.", epoch, best)
   }
 
-  private static Collection<Match> chooseRandomMatches(List<Match> matches, int numberOfMatches) {
+  private static Collection<Match> chooseRandomMatches(matches, numberOfMatches, homeWinRatio, drawRatio, awayWinRatio) {
     Collections.shuffle(matches)
-    new HashSet<>(matches.subList(0, numberOfMatches))
+    Set<Match> choosenMatches = new HashSet<>()
+    choosenMatches.addAll(matches.grep{ it.isHomeWin()}.subList(0, (int) Math.round(numberOfMatches * homeWinRatio)))
+    choosenMatches.addAll(matches.grep{ it.isDraw()}.subList(0, (int) Math.round(numberOfMatches * drawRatio)))
+    choosenMatches.addAll(matches.grep{ it.isAwayWin()}.subList(0, (int) Math.round(numberOfMatches * awayWinRatio)))
+    choosenMatches
   }
 }

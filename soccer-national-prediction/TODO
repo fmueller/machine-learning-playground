@@ -1,8 +1,7 @@
-- split training/validation/test data sets in exact ratio of homewin/draw/awaywin
+- parallelize computation of features
 - add form feature (form of home team, away team and diff of both - by sum of home wins, home draws, away wins, away draws)
 - add head-to-head feature
 - add matchstatistics feature (number of wins, draws, losts and home wins, home draws, home losts, away wins, away draws, away losts)
-- parallelize computation of features
 - safe computed features and load them afterwards from disk
 - try other learning algorithms: svm, logistic regression
 - add data set from transfermarkt
