@@ -1,12 +1,14 @@
 package de.cupofjava.machinelearning.soccer.worldcup
 
 import groovy.transform.EqualsAndHashCode
+import groovy.transform.ToString
 import org.joda.time.LocalDate
 
 /**
  * @author fmueller
  */
 @EqualsAndHashCode
+@ToString
 class Match {
 
   LocalDate date

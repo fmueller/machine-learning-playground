@@ -1,11 +1,13 @@
 package de.cupofjava.machinelearning.soccer.worldcup
 
 import groovy.transform.EqualsAndHashCode
+import groovy.transform.ToString
 
 /**
  * @author fmueller
  */
 @EqualsAndHashCode
+@ToString
 class MatchPrediction {
 
   Match match
@@ -22,7 +24,7 @@ class MatchPrediction {
   }
 
   boolean isHomeWinPredicted() {
-    homeWinProbability > drawProbability && homeWinProbability > awayWinProbability
+    !isDrawPredicted() && !isAwayWinPredicted()
   }
 
   boolean isDrawPredicted() {
@@ -30,6 +32,6 @@ class MatchPrediction {
   }
 
   boolean isAwayWinPredicted() {
-    awayWinProbability > homeWinProbability && awayWinProbability > homeWinProbability
+    awayWinProbability > homeWinProbability && !isDrawPredicted()
   }
 }
