@@ -1,0 +1,9 @@
+- calculate F1 score to evaluate neural network
+- split training/validation/test data sets in exact ratio of homewin/draw/awaywin
+- add form feature (form of home team, away team and diff of both - by sum of home wins, home draws, away wins, away draws)
+- add head-to-head feature
+- add matchstatistics feature (number of wins, draws, losts and home wins, home draws, home losts, away wins, away draws, away losts)
+- safe computed features and load them afterwards from disk
+- try other learning algorithms: svm, logistic regression
+- add data set from transfermarkt
+- test if last 6 matches, last 3 matches and last match improves performance
