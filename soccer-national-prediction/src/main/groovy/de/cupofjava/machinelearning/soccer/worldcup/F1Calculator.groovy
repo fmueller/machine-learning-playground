@@ -52,19 +52,19 @@ class F1Calculator {
 
   private double f1Score(Closure truePositives, Closure falsePositives, Closure falseNegatives) {
     2 * ((precision(truePositives, falsePositives) * recall(truePositives, falseNegatives)) /
-        (precision(truePositives, falsePositives) + recall(truePositives, falseNegatives)))
+        Math.max(1.0, precision(truePositives, falsePositives) + recall(truePositives, falseNegatives)))
   }
 
   private double precision(Closure truePositives, Closure falsePositives) {
     int truePositivesCount = predictions.grep(truePositives).size()
     int falsePositivesCount = predictions.grep(falsePositives).size()
-    truePositivesCount / (double) (truePositivesCount + falsePositivesCount)
+    truePositivesCount / Math.max(1.0, (double) (truePositivesCount + falsePositivesCount))
   }
 
   private double recall(Closure truePositives, Closure falseNegatives) {
     int truePositivesCount = predictions.grep(truePositives).size()
     int falseNegativesCount = predictions.grep(falseNegatives).size()
-    truePositivesCount / (double) (truePositivesCount + falseNegativesCount)
+    truePositivesCount / Math.max(1.0, (double) (truePositivesCount + falseNegativesCount))
   }
 
   private double roundToFiveDecimalPlaces(double value) {
