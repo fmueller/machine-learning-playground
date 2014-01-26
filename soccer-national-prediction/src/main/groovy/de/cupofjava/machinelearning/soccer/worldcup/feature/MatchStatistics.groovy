@@ -4,9 +4,6 @@ import de.cupofjava.machinelearning.soccer.worldcup.Matches
 import org.joda.time.LocalDate
 
 /**
- * This feature does not to work for national soccer matches. Will leave
- * this code here, maybe it will be usefull in analyzing matches (later on).
- *
  * @author fmueller
  */
 final class MatchStatistics implements Feature {

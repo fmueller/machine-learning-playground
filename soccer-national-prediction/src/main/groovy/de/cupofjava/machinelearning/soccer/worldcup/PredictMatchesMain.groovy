@@ -62,7 +62,8 @@ class PredictMatchesMain {
     log.info("Computing features...")
     def featureSet = new FeatureSet(new HostFactor(),
         new GoalDifferences(), new GoalAverages(),
-        new MatchStatisticsDifferences(), new HeadToHead())
+        new MatchStatistics(), new MatchStatisticsDifferences(),
+        new HeadToHead())
     def trainingData = featureSet.computeDataSet(trainingMatches)
     def validationData = featureSet.computeDataSet(validationMatches)
 

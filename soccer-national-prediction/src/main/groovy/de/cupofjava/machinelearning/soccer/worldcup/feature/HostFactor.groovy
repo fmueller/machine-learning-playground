@@ -11,7 +11,7 @@ final class HostFactor implements Feature {
 
   @Override
   int getSize() {
-    2
+    6
   }
 
   @Override
@@ -23,6 +23,17 @@ final class HostFactor implements Feature {
     hostFactor[1] = hostFactorForMatches(
         Matches.lastHomeMatchesBefore(matchDate, homeTeam),
         Matches.lastAwayMatchesBefore(matchDate, homeTeam))
+
+    hostFactor[2] = hostFactorForMatches(
+        Matches.allAwayMatchesBefore(matchDate, awayTeam),
+        Matches.allHomeMatchesBefore(matchDate, awayTeam))
+    hostFactor[3] = hostFactorForMatches(
+        Matches.lastAwayMatchesBefore(matchDate, awayTeam),
+        Matches.lastHomeMatchesBefore(matchDate, awayTeam))
+
+    hostFactor[4] = hostFactor[0] - hostFactor[2]
+    hostFactor[5] = hostFactor[1] - hostFactor[3]
+
     hostFactor
   }
 
@@ -33,6 +44,6 @@ final class HostFactor implements Feature {
     double homePointsRatio = (homeMatches.grep { it.isHomeWin() }.size() * 3 + homeMatches.grep { it.isDraw() }.size()) / possibleHomePoints
     double awayPointsRatio = (awayMatches.grep { it.isAwayWin() }.size() * 3 + awayMatches.grep { it.isDraw() }.size()) / possibleAwayPoints
 
-    homePointsRatio - awayPointsRatio
+    (homePointsRatio - awayPointsRatio) / awayPointsRatio > 0.0 ? awayPointsRatio : 1.0
   }
 }
