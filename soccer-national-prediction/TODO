@@ -1,8 +1,8 @@
-- add form feature (form of home team, away team and diff of both - by sum of home wins, home draws, away wins, away draws)
 - add head-to-head feature
-- add matchstatistics feature (number of wins, draws, losts and home wins, home draws, home losts, away wins, away draws, away losts)
-- safe computed features and load them afterwards from disk
+- show recall and precision by homewin, draw and awaywin
 - try other learning algorithms: svm, logistic regression
+- safe computed features and load them afterwards from disk
+- investigate if feature for date makes sense: maybe home win ratio for matches in this month / season
+- output data of experiment to csv file (prediction for each match, neural network performance evaluation data)
 - add data set from transfermarkt
 - test if last 6 matches, last 3 matches and last match improves performance
-- output data of experiment to csv file (prediction for each match, neural network performance evaluation data)
