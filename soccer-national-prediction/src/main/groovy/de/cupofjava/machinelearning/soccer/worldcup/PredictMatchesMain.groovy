@@ -2,10 +2,7 @@ package de.cupofjava.machinelearning.soccer.worldcup
 
 import com.google.common.base.Charsets
 import com.google.common.io.Resources
-import de.cupofjava.machinelearning.soccer.worldcup.feature.FeatureSet
-import de.cupofjava.machinelearning.soccer.worldcup.feature.GoalAverages
-import de.cupofjava.machinelearning.soccer.worldcup.feature.GoalDifferences
-import de.cupofjava.machinelearning.soccer.worldcup.feature.HostFactor
+import de.cupofjava.machinelearning.soccer.worldcup.feature.*
 import groovy.util.logging.Slf4j
 import org.encog.engine.network.activation.ActivationLinear
 import org.encog.engine.network.activation.ActivationTANH
@@ -36,11 +33,13 @@ class PredictMatchesMain {
   private static double VALIDATION_DATA_RATIO = 0.2
 
   private static double MAX_ERROR_RATE = 0.1
-  private static int MAX_ITERATIONS = 5000
+  private static int MAX_ITERATIONS = 1000
+
+  private static double HIDDEN_LAYER_RATIO = 0.667
 
   static void main(args) {
-    String csv = Resources.toString(Resources.getResource("soccerData.csv"), Charsets.UTF_8)
-    Matches.storeAllMatches(MatchParser.parseMatches(csv))
+    Matches.storeAllMatches(MatchParser.parseMatches(
+        Resources.toString(Resources.getResource("soccerData.csv"), Charsets.UTF_8)))
     List<Match> matches = new LinkedList<>(Matches.allMatches())
     log.info("Loaded {} matches", matches.size())
 
@@ -55,19 +54,18 @@ class PredictMatchesMain {
     log.info("Validation data set size: {}", validationDataSetSize)
 
     log.info("Splitting data into training, validation and test data set...")
-    // TODO split match data by exact home win/draw/away win ratio
-    Collection<Match> trainingMatches = chooseRandomMatches(matches, trainingDataSetSize, homeWinRatio, drawRatio, awayWinRatio)
+    def trainingMatches = chooseRandomMatches(matches, trainingDataSetSize, homeWinRatio, drawRatio, awayWinRatio)
     matches.removeAll(trainingMatches)
-    Collection<Match> validationMatches = chooseRandomMatches(matches, validationDataSetSize, homeWinRatio, drawRatio, awayWinRatio)
+    def validationMatches = chooseRandomMatches(matches, validationDataSetSize, homeWinRatio, drawRatio, awayWinRatio)
     matches.removeAll(validationMatches)
 
     log.info("Computing features...")
-    FeatureSet featureSet = new FeatureSet(new HostFactor(), new GoalDifferences(), new GoalAverages())
-    MLDataSet trainingData = featureSet.computeDataSet(trainingMatches)
-    MLDataSet validationData = featureSet.computeDataSet(validationMatches)
+    def featureSet = new FeatureSet(new HostFactor(), new GoalDifferences(), new GoalAverages(), new MatchStatisticsDifferences())
+    def trainingData = featureSet.computeDataSet(trainingMatches)
+    def validationData = featureSet.computeDataSet(validationMatches)
 
     log.info("Start training...")
-    BasicNetwork network = createNeuralNetwork(trainingData)
+    def network = createNeuralNetwork(trainingData)
     trainNetwork(network, trainingData, validationData)
 
     log.info("Evaluating network performance on test data...")
@@ -77,10 +75,10 @@ class PredictMatchesMain {
   }
 
   static void testNetwork(BasicNetwork network, HashSet<Match> testMatches, FeatureSet featureSet) {
-    AtomicInteger correct = new AtomicInteger(0)
-    AtomicInteger correctHomeWin = new AtomicInteger(0)
-    AtomicInteger correctDraw = new AtomicInteger(0)
-    AtomicInteger correctAwayWin = new AtomicInteger(0)
+    def correct = new AtomicInteger(0)
+    def correctHomeWin = new AtomicInteger(0)
+    def correctDraw = new AtomicInteger(0)
+    def correctAwayWin = new AtomicInteger(0)
 
     def predictions = withPool {
       testMatches.parallel.map { match ->
@@ -102,17 +100,21 @@ class PredictMatchesMain {
       }.collection
     }
 
-    log.info("Correct matches: {} of {}", correct, testMatches.size())
-    log.info("Correct home wins: {}", correctHomeWin)
-    log.info("Correct draws: {}", correctDraw)
-    log.info("Correct away wins: {}", correctAwayWin)
+    def homeWinCount = testMatches.grep { it.isHomeWin() }.size()
+    def drawCount = testMatches.grep { it.isDraw() }.size()
+    def awayWinCount = testMatches.grep { it.isAwayWin() }.size()
 
-    log.info("Home win ratio on test data set: {}%", String.format("%.2f", 100 * testMatches.grep { it.isHomeWin() }.size() / (double) testMatches.size()))
+    log.info("Correct matches: {} of {}", correct, testMatches.size())
+    log.info("Correct home wins: {} of {}", correctHomeWin, homeWinCount)
+    log.info("Correct draws: {} of {}", correctDraw, drawCount)
+    log.info("Correct away wins: {} of {}", correctAwayWin, awayWinCount)
+
+    log.info("Home win ratio on test data set: {}%", String.format("%.2f", 100 * homeWinCount / (double) testMatches.size()))
     log.info("Home win ratio on whole data set: {}%", String.format("%.2f", Matches.homeWinRatio()))
 
     log.info("Accuracy on test data: {}%", String.format("%.2f", 100 * correct.get() / (double) testMatches.size()))
 
-    F1Calculator f1Calculator = new F1Calculator(predictions)
+    def f1Calculator = new F1Calculator(predictions)
     log.info("F1 Score: {}", f1Calculator.computeDefault())
     log.info("Weighted F1 Score: {}", f1Calculator.computeWeighted())
   }
@@ -120,7 +122,7 @@ class PredictMatchesMain {
   private static BasicNetwork createNeuralNetwork(MLDataSet trainingData) {
     BasicNetwork network = new BasicNetwork()
     network.addLayer(new BasicLayer(new ActivationLinear(), false, trainingData.getInputSize()))
-    network.addLayer(new BasicLayer(new ActivationTANH(), true, trainingData.getInputSize()))
+    network.addLayer(new BasicLayer(new ActivationTANH(), true, (int) Math.round(trainingData.getInputSize() * HIDDEN_LAYER_RATIO)))
     network.addLayer(new BasicLayer(new ActivationLinear(), true, trainingData.getIdealSize()))
     network.getStructure().finalizeStructure()
     network.reset()
