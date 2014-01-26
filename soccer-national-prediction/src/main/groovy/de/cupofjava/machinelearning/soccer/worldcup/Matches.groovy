@@ -70,6 +70,14 @@ class Matches {
     100 * MATCHES.grep { it.isHomeWin() }.size() / (double) MATCHES.size()
   }
 
+  static double drawRatio() {
+    100 * MATCHES.grep { it.isDraw() }.size() / (double) MATCHES.size()
+  }
+
+  static double awayWinRatio() {
+    100 * MATCHES.grep { it.isAwayWin() }.size() / (double) MATCHES.size()
+  }
+
   private static Collection<Match> takeUpTo(int numberOfMatches, List<Match> matches) {
     matches.size() >= numberOfMatches ? matches.subList(0, numberOfMatches) : matches
   }

@@ -20,8 +20,19 @@ class MatchParser {
           line[0],
           line[1],
           Integer.parseInt(line[2]),
-          Integer.parseInt(line[3])))
+          Integer.parseInt(line[3]),
+          parseOdds(line[5]),
+          parseOdds(line[6]),
+          parseOdds(line[7])))
     }
     matches
+  }
+
+  private static double parseOdds(String value) {
+    try {
+      Double.parseDouble(value)
+    } catch (NumberFormatException e) {
+      Double.MAX_VALUE
+    }
   }
 }

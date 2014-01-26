@@ -17,8 +17,6 @@ import org.encog.neural.networks.layers.BasicLayer
 import org.encog.neural.networks.training.propagation.resilient.ResilientPropagation
 import org.encog.util.concurrency.EngineConcurrency
 
-import java.util.concurrent.atomic.AtomicInteger
-
 import static groovyx.gpars.GParsPool.withPool
 
 /**
@@ -71,55 +69,17 @@ class PredictMatchesMain {
     def network = createNeuralNetwork(trainingData)
     trainNetwork(network, trainingData, validationData)
 
+    log.info("Home win, draw, away win ratio on whole data set: {}% / {}% / {}%",
+        String.format("%.2f", Matches.homeWinRatio()),
+        String.format("%.2f", Matches.drawRatio()),
+        String.format("%.2f", Matches.awayWinRatio()))
+
     log.info("Evaluating network performance on test data...")
-    testNetwork(network, new HashSet<>(matches), featureSet)
+    def testMatches = new HashSet<>(matches)
+    testNetwork(network, testMatches, featureSet)
+    testBookie(testMatches)
 
     EngineConcurrency.getInstance().shutdown(2000L)
-  }
-
-  static void testNetwork(BasicNetwork network, HashSet<Match> testMatches, FeatureSet featureSet) {
-    def correct = new AtomicInteger(0)
-    def correctHomeWin = new AtomicInteger(0)
-    def correctDraw = new AtomicInteger(0)
-    def correctAwayWin = new AtomicInteger(0)
-
-    def predictions = withPool {
-      testMatches.parallel.map { match ->
-        MLData input = featureSet.computeInputData(match)
-        double[] output = network.compute(input).getData()
-
-        def prediction = new MatchPrediction(match, output)
-        if (match.isHomeWin() && prediction.isHomeWinPredicted()) {
-          correct.incrementAndGet()
-          correctHomeWin.incrementAndGet()
-        } else if (match.isDraw() && prediction.isDrawPredicted()) {
-          correct.incrementAndGet()
-          correctDraw.incrementAndGet()
-        } else if (match.isAwayWin() && prediction.isAwayWinPredicted()) {
-          correct.incrementAndGet()
-          correctAwayWin.incrementAndGet()
-        }
-        prediction
-      }.collection
-    }
-
-    def homeWinCount = testMatches.grep { it.isHomeWin() }.size()
-    def drawCount = testMatches.grep { it.isDraw() }.size()
-    def awayWinCount = testMatches.grep { it.isAwayWin() }.size()
-
-    log.info("Correct matches: {} of {}", correct, testMatches.size())
-    log.info("Correct home wins: {} of {}", correctHomeWin, homeWinCount)
-    log.info("Correct draws: {} of {}", correctDraw, drawCount)
-    log.info("Correct away wins: {} of {}", correctAwayWin, awayWinCount)
-
-    log.info("Home win ratio on test data set: {}%", String.format("%.2f", 100 * homeWinCount / (double) testMatches.size()))
-    log.info("Home win ratio on whole data set: {}%", String.format("%.2f", Matches.homeWinRatio()))
-
-    log.info("Accuracy on test data: {}%", String.format("%.2f", 100 * correct.get() / (double) testMatches.size()))
-
-    def f1Calculator = new F1Calculator(predictions)
-    log.info("F1 Score: {}", f1Calculator.computeDefault())
-    log.info("Weighted F1 Score: {}", f1Calculator.computeWeighted())
   }
 
   private static BasicNetwork createNeuralNetwork(MLDataSet trainingData) {
@@ -151,6 +111,79 @@ class PredictMatchesMain {
     }
     trainer.finishTraining()
     log.info("Finished training after {} iterations with best error rate of {}.", epoch, best)
+  }
+
+  private static void testNetwork(network, testMatches, featureSet) {
+    log.info("")
+    log.info("Neural Network Performance:")
+    log.info("")
+    evaluatePredictions(testMatches, { match ->
+      MLData input = featureSet.computeInputData(match)
+      double[] output = network.compute(input).getData()
+      new MatchPrediction(match, output)
+    })
+  }
+
+  private static void testBookie(testMatches) {
+    log.info("")
+    log.info("Bookie Performance:")
+    log.info("")
+    evaluatePredictions(testMatches, { it.getBookmakerPrediction() })
+  }
+
+  private static void evaluatePredictions(testMatches, predictMatch) {
+    def predictions = withPool { testMatches.parallel.map(predictMatch).collection }
+
+    def correctHomeWin = 0
+    def correctDraw = 0
+    def correctAwayWin = 0
+
+    def predictedHomeWin = 0
+    def predictedDraw = 0
+    def predictedAwayWin = 0
+
+    for (MatchPrediction prediction : predictions) {
+      if (prediction.isCorrectHomeWin()) {
+        correctHomeWin++
+      } else if (prediction.isCorrectDraw()) {
+        correctDraw++
+      } else if (prediction.isCorrectAwayWin()) {
+        correctAwayWin++
+      }
+
+      if (prediction.isHomeWinPredicted()) {
+        predictedHomeWin++
+      } else if (prediction.isDrawPredicted()) {
+        predictedDraw++
+      } else if (prediction.isAwayWinPredicted()) {
+        predictedAwayWin++
+      }
+    }
+
+    def matchesCount = (double) testMatches.size()
+    def correct = correctHomeWin + correctDraw + correctAwayWin
+    def homeWinCount = testMatches.grep { it.isHomeWin() }.size()
+    def drawCount = testMatches.grep { it.isDraw() }.size()
+    def awayWinCount = testMatches.grep { it.isAwayWin() }.size()
+
+    log.info("Home win, draw, away win ratio of predictions: {}% / {}% / {}%",
+        String.format("%.2f", 100 * predictedHomeWin / matchesCount),
+        String.format("%.2f", 100 * predictedDraw / matchesCount),
+        String.format("%.2f", 100 * predictedAwayWin / matchesCount))
+    log.info("Predicted home wins: {}", predictedHomeWin)
+    log.info("Predicted draws: {}", predictedDraw)
+    log.info("Predicted away wins: {}", predictedAwayWin)
+
+    log.info("Correct matches: {} of {}", correct, testMatches.size())
+    log.info("Correct home wins: {} of {}", correctHomeWin, homeWinCount)
+    log.info("Correct draws: {} of {}", correctDraw, drawCount)
+    log.info("Correct away wins: {} of {}", correctAwayWin, awayWinCount)
+
+    log.info("Accuracy on test data: {}%", String.format("%.2f", 100 * correct / matchesCount))
+
+    def f1Calculator = new F1Calculator(predictions)
+    log.info("F1 Score: {}", f1Calculator.computeDefault())
+    log.info("Weighted F1 Score: {}", f1Calculator.computeWeighted())
   }
 
   private static Collection<Match> chooseRandomMatches(matches, numberOfMatches, homeWinRatio, drawRatio, awayWinRatio) {

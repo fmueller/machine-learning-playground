@@ -34,4 +34,16 @@ class MatchPrediction {
   boolean isAwayWinPredicted() {
     awayWinProbability > homeWinProbability && !isDrawPredicted()
   }
+
+  boolean isCorrectHomeWin() {
+    match.isHomeWin() && isHomeWinPredicted()
+  }
+
+  boolean isCorrectDraw() {
+    match.isDraw() && isDrawPredicted()
+  }
+
+  boolean isCorrectAwayWin() {
+    match.isAwayWin() && isAwayWinPredicted()
+  }
 }
