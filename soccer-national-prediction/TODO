@@ -1,4 +1,3 @@
-- add head-to-head feature
 - show recall and precision by homewin, draw and awaywin
 - try other learning algorithms: svm, logistic regression
 - safe computed features and load them afterwards from disk

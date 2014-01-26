@@ -11,7 +11,7 @@ class Matches {
 
   private static final Set<Match> MATCHES = new HashSet<>()
 
-  private static Comparator<Match> BY_DATE_DESCENDING = new Comparator<Match>() {
+  private static final Comparator<Match> BY_DATE_DESCENDING = new Comparator<Match>() {
     @Override
     int compare(Match match, Match otherMatch) {
       -1 * match.getDate().compareTo(otherMatch.getDate())
@@ -30,8 +30,16 @@ class Matches {
     MATCHES.grep { matchDate.isAfter(it.getDate()) && it.hasPlayed(team) }
   }
 
+  static Collection<Match> allMatchesBefore(LocalDate matchDate, String homeTeam, String awayTeam) {
+    MATCHES.grep { matchDate.isAfter(it.getDate()) && it.hasPlayed(homeTeam) && it.hasPlayed(awayTeam) }
+  }
+
   static Collection<Match> allHomeMatchesBefore(LocalDate matchDate, String homeTeam) {
     MATCHES.grep { matchDate.isAfter(it.getDate()) && it.isHomeTeam(homeTeam) }
+  }
+
+  static Collection<Match> allHomeMatchesBefore(LocalDate matchDate, String homeTeam, String awayTeam) {
+    MATCHES.grep { matchDate.isAfter(it.getDate()) && it.isHomeTeam(homeTeam) && it.isAwayTeam(awayTeam) }
   }
 
   static Collection<Match> allAwayMatchesBefore(LocalDate matchDate, String awayTeam) {
@@ -42,8 +50,16 @@ class Matches {
     takeUpTo(LAST_MATCHES, allMatchesBefore(matchDate, team).sort(BY_DATE_DESCENDING))
   }
 
+  static Collection<Match> lastMatchesBefore(LocalDate matchDate, String homeTeam, String awayTeam) {
+    takeUpTo(LAST_MATCHES, allMatchesBefore(matchDate, homeTeam, awayTeam).sort(BY_DATE_DESCENDING))
+  }
+
   static Collection<Match> lastHomeMatchesBefore(LocalDate matchDate, String homeTeam) {
     takeUpTo(LAST_MATCHES, allHomeMatchesBefore(matchDate, homeTeam).sort(BY_DATE_DESCENDING))
+  }
+
+  static Collection<Match> lastHomeMatchesBefore(LocalDate matchDate, String homeTeam, String awayTeam) {
+    takeUpTo(LAST_MATCHES, allHomeMatchesBefore(matchDate, homeTeam, awayTeam).sort(BY_DATE_DESCENDING))
   }
 
   static Collection<Match> lastAwayMatchesBefore(LocalDate matchDate, String awayTeam) {
