@@ -36,6 +36,7 @@ class PredictMatchesMain {
   private static double HIDDEN_LAYER_RATIO = 0.667
 
   static void main(args) {
+    log.info("Loading match data...")
     Matches.storeAllMatches(MatchParser.parseMatches(
         Resources.toString(Resources.getResource("soccerData.csv"), Charsets.UTF_8)))
     List<Match> matches = new LinkedList<>(Matches.allMatches())
@@ -57,22 +58,19 @@ class PredictMatchesMain {
     def validationMatches = chooseRandomMatches(matches, validationDataSetSize, homeWinRatio, drawRatio, awayWinRatio)
     matches.removeAll(validationMatches)
 
-    log.info("Computing features...")
     def featureSet = new FeatureSet(new HostFactor(),
         new GoalDifferences(), new GoalAverages(),
         new MatchStatistics(), new MatchStatisticsDifferences(),
         new HeadToHead())
+
+    log.info("Computing features for training data set...")
     def trainingData = featureSet.computeDataSet(trainingMatches)
+    log.info("Computing features for cross-validation data set...")
     def validationData = featureSet.computeDataSet(validationMatches)
 
     log.info("Start training...")
     def network = createNeuralNetwork(trainingData)
     trainNetwork(network, trainingData, validationData)
-
-    log.info("Home win, draw, away win ratio on whole data set: {}% / {}% / {}%",
-        String.format("%.2f", Matches.homeWinRatio()),
-        String.format("%.2f", Matches.drawRatio()),
-        String.format("%.2f", Matches.awayWinRatio()))
 
     log.info("Evaluating network performance on test data...")
     def testMatches = new HashSet<>(matches)
@@ -166,10 +164,15 @@ class PredictMatchesMain {
     def drawCount = testMatches.grep { it.isDraw() }.size()
     def awayWinCount = testMatches.grep { it.isAwayWin() }.size()
 
+    log.info("Home win, draw, away win ratio on whole data set: {}% / {}% / {}%",
+        String.format("%.2f", Matches.homeWinRatio()),
+        String.format("%.2f", Matches.drawRatio()),
+        String.format("%.2f", Matches.awayWinRatio()))
     log.info("Home win, draw, away win ratio of predictions: {}% / {}% / {}%",
         String.format("%.2f", 100 * predictedHomeWin / matchesCount),
         String.format("%.2f", 100 * predictedDraw / matchesCount),
         String.format("%.2f", 100 * predictedAwayWin / matchesCount))
+
     log.info("Predicted home wins: {}", predictedHomeWin)
     log.info("Predicted draws: {}", predictedDraw)
     log.info("Predicted away wins: {}", predictedAwayWin)
