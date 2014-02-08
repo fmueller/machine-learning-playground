@@ -1,8 +1,7 @@
-- show recall and precision by homewin, draw and awaywin
+- safe computed features and load them afterwards from disk
 - try other learning algorithms: svm, logistic regression
 - try adaboost
-- safe computed features and load them afterwards from disk
-- investigate if feature for date makes sense: maybe home win ratio for matches in this month / season
 - output data of experiment to csv file (prediction for each match, neural network performance evaluation data)
+- investigate if feature for date makes sense: maybe home win ratio for matches in this month / season
 - add data set from transfermarkt
 - test if last 6 matches, last 3 matches and last match improves performance
