@@ -16,7 +16,7 @@ class FeatureSet {
 
   List<Feature> features
 
-  private int sizeOfFeatureSet
+  private int sizeOfFeatureSet = 3
 
   FeatureSet(Feature... features) {
     this.features = new LinkedList(Arrays.asList(features))
@@ -41,6 +41,9 @@ class FeatureSet {
         input[i++] = computedInput
       }
     }
+    input[i++] = 1 / match.getHomeWinOdds()
+    input[i++] = 1 / match.getDrawOdds()
+    input[i] = 1 / match.getAwayWinOdds()
     new BasicMLData(input)
   }
 
