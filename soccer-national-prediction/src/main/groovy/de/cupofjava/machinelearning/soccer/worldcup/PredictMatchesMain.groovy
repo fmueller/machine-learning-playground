@@ -35,6 +35,8 @@ class PredictMatchesMain {
 
   private static double HIDDEN_LAYER_RATIO = 0.667
 
+  private static Random FIXED_SEED = new Random(1337L)
+
   static void main(args) {
     log.info("Loading match data...")
     Matches.storeAllMatches(MatchParser.parseMatches(
@@ -190,7 +192,7 @@ class PredictMatchesMain {
   }
 
   private static Collection<Match> chooseRandomMatches(matches, numberOfMatches, homeWinRatio, drawRatio, awayWinRatio) {
-    Collections.shuffle(matches)
+    Collections.shuffle(matches, FIXED_SEED)
     Set<Match> choosenMatches = new HashSet<>()
     choosenMatches.addAll(matches.grep { it.isHomeWin() }.subList(0, (int) Math.round(numberOfMatches * homeWinRatio)))
     choosenMatches.addAll(matches.grep { it.isDraw() }.subList(0, (int) Math.round(numberOfMatches * drawRatio)))
