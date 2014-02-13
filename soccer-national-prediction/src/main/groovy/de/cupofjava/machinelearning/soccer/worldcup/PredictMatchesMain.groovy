@@ -27,6 +27,7 @@ import static groovyx.gpars.GParsPool.withPool
 @Slf4j
 class PredictMatchesMain {
 
+  private static double TEST_DATA_RATIO = 0.2
   private static double TRAINING_DATA_RATIO = 0.6
   private static double VALIDATION_DATA_RATIO = 0.2
 
@@ -35,8 +36,6 @@ class PredictMatchesMain {
 
   private static double HIDDEN_LAYER_RATIO = 0.667
 
-  private static Random FIXED_SEED = new Random(1337L)
-
   static void main(args) {
     log.info("Loading match data...")
     Matches.storeAllMatches(MatchParser.parseMatches(
@@ -44,21 +43,19 @@ class PredictMatchesMain {
     List<Match> matches = new LinkedList<>(Matches.allMatches())
     log.info("Loaded {} matches", matches.size())
 
-    double homeWinRatio = matches.grep { it.isHomeWin() }.size() / (double) matches.size()
-    double drawRatio = matches.grep { it.isDraw() }.size() / (double) matches.size()
-    double awayWinRatio = matches.grep { it.isAwayWin() }.size() / (double) matches.size()
-
-    int trainingDataSetSize = (int) Math.round(matches.size() * TRAINING_DATA_RATIO)
+    int testDataSetSize = (int) Math.round(matches.size() * TEST_DATA_RATIO)
     int validationDataSetSize = (int) Math.round(matches.size() * VALIDATION_DATA_RATIO)
+    int trainingDataSetSize = (int) Math.round(matches.size() * TRAINING_DATA_RATIO)
 
     log.info("Training data set size: {}", trainingDataSetSize)
     log.info("Validation data set size: {}", validationDataSetSize)
 
     log.info("Splitting data into training, validation and test data set...")
-    def trainingMatches = chooseRandomMatches(matches, trainingDataSetSize, homeWinRatio, drawRatio, awayWinRatio)
-    matches.removeAll(trainingMatches)
-    def validationMatches = chooseRandomMatches(matches, validationDataSetSize, homeWinRatio, drawRatio, awayWinRatio)
+    def testMatches = chooseRandomMatches(matches, testDataSetSize)
+    matches.removeAll(testMatches)
+    def validationMatches = chooseRandomMatches(matches, validationDataSetSize)
     matches.removeAll(validationMatches)
+    def trainingMatches = chooseRandomMatches(matches, trainingDataSetSize)
 
     def featureSet = new FeatureSet(new HostFactor(),
         new GoalDifferences(), new GoalAverages(),
@@ -75,7 +72,6 @@ class PredictMatchesMain {
     trainNetwork(network, trainingData, validationData)
 
     log.info("Evaluating network performance on test data...")
-    def testMatches = new HashSet<>(matches)
     testNetwork(network, testMatches, featureSet)
     testBookie(testMatches)
 
@@ -191,12 +187,10 @@ class PredictMatchesMain {
     log.info("Weighted F1 Score: {}", f1Calculator.computeWeighted())
   }
 
-  private static Collection<Match> chooseRandomMatches(matches, numberOfMatches, homeWinRatio, drawRatio, awayWinRatio) {
-    Collections.shuffle(matches, FIXED_SEED)
+  private static Collection<Match> chooseRandomMatches(matches, numberOfMatches) {
+    Collections.sort(matches, new MatchByDateDescending())
     Set<Match> choosenMatches = new HashSet<>()
-    choosenMatches.addAll(matches.grep { it.isHomeWin() }.subList(0, (int) Math.round(numberOfMatches * homeWinRatio)))
-    choosenMatches.addAll(matches.grep { it.isDraw() }.subList(0, (int) Math.round(numberOfMatches * drawRatio)))
-    choosenMatches.addAll(matches.grep { it.isAwayWin() }.subList(0, (int) Math.round(numberOfMatches * awayWinRatio)))
+    choosenMatches.addAll(matches.subList(0, numberOfMatches))
     choosenMatches
   }
 }

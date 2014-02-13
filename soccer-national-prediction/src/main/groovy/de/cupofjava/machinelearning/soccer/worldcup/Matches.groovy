@@ -11,12 +11,7 @@ class Matches {
 
   private static final Set<Match> MATCHES = new HashSet<>()
 
-  private static final Comparator<Match> BY_DATE_DESCENDING = new Comparator<Match>() {
-    @Override
-    int compare(Match match, Match otherMatch) {
-      -1 * match.getDate().compareTo(otherMatch.getDate())
-    }
-  }
+  private static final Comparator<Match> BY_DATE_DESCENDING = new MatchByDateDescending()
 
   static def storeAllMatches(Collection<Match> matches) {
     MATCHES.addAll(matches)
