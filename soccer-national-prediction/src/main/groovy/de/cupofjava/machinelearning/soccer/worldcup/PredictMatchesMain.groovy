@@ -20,7 +20,10 @@ import org.encog.util.concurrency.EngineConcurrency
 import static groovyx.gpars.GParsPool.withPool
 
 /**
- * TODO javadoc
+ * This project is a predictor for matches between national soccer teams.
+ * For that, a neural network is trained and evaluated on a test data set.
+ * Afterwards the performance of the bookmakers is evaluated on this
+ * test data set.
  *
  * @author fmueller
  */
@@ -28,7 +31,6 @@ import static groovyx.gpars.GParsPool.withPool
 class PredictMatchesMain {
 
   private static double TEST_DATA_RATIO = 0.2
-  private static double TRAINING_DATA_RATIO = 0.6
   private static double VALIDATION_DATA_RATIO = 0.2
 
   private static double MAX_ERROR_RATE = 0.1
@@ -45,17 +47,13 @@ class PredictMatchesMain {
 
     int testDataSetSize = (int) Math.round(matches.size() * TEST_DATA_RATIO)
     int validationDataSetSize = (int) Math.round(matches.size() * VALIDATION_DATA_RATIO)
-    int trainingDataSetSize = (int) Math.round(matches.size() * TRAINING_DATA_RATIO)
-
-    log.info("Training data set size: {}", trainingDataSetSize)
-    log.info("Validation data set size: {}", validationDataSetSize)
 
     log.info("Splitting data into training, validation and test data set...")
     def testMatches = chooseRandomMatches(matches, testDataSetSize)
     matches.removeAll(testMatches)
     def validationMatches = chooseRandomMatches(matches, validationDataSetSize)
     matches.removeAll(validationMatches)
-    def trainingMatches = chooseRandomMatches(matches, trainingDataSetSize)
+    def trainingMatches = new HashSet<>(matches)
 
     def featureSet = new FeatureSet(new HostFactor(),
         new GoalDifferences(), new GoalAverages(),
