@@ -3,6 +3,8 @@ package de.cupofjava.machinelearning.soccer.worldcup
 import org.joda.time.LocalDate
 
 /**
+ * This class holds all match data in-memory.
+ *
  * @author fmueller
  */
 class Matches {

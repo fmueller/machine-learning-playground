@@ -8,11 +8,17 @@ import org.joda.time.LocalDate
  */
 final class MatchStatistics implements Feature {
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   int getSize() {
     32
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   double[] compute(LocalDate matchDate, String homeTeam, String awayTeam) {
     double[] matchStatistics = new double[getSize()]

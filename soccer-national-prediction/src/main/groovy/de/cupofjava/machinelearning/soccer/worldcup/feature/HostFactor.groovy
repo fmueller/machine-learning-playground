@@ -9,11 +9,17 @@ import org.joda.time.LocalDate
  */
 final class HostFactor implements Feature {
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   int getSize() {
     6
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   double[] compute(LocalDate matchDate, String homeTeam, String awayTeam) {
     double[] hostFactor = new double[getSize()]

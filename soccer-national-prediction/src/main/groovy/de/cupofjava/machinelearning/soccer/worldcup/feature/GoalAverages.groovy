@@ -9,11 +9,17 @@ import org.joda.time.LocalDate
  */
 final class GoalAverages implements Feature {
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   int getSize() {
     32
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   double[] compute(LocalDate matchDate, String homeTeam, String awayTeam) {
     double[] goalAverages = new double[getSize()]

@@ -3,6 +3,8 @@ package de.cupofjava.machinelearning.soccer.worldcup
 import java.math.RoundingMode
 
 /**
+ * Calculates the F1 Score for match predictions.
+ *
  * @author fmueller
  */
 class F1Calculator {

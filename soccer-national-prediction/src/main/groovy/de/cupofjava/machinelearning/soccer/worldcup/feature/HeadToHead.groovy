@@ -9,11 +9,17 @@ import org.joda.time.LocalDate
  */
 final class HeadToHead implements Feature {
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   int getSize() {
     26
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   double[] compute(LocalDate matchDate, String homeTeam, String awayTeam) {
     double[] headToHeadComparison = new double[getSize()]
