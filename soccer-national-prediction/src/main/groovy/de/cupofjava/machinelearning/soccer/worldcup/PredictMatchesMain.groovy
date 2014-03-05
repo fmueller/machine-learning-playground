@@ -7,6 +7,7 @@ import groovy.util.logging.Slf4j
 import org.encog.engine.network.activation.ActivationLinear
 import org.encog.engine.network.activation.ActivationTANH
 import org.encog.ml.data.MLData
+import org.encog.ml.data.MLDataPair
 import org.encog.ml.data.MLDataSet
 import org.encog.ml.train.MLTrain
 import org.encog.ml.train.strategy.end.EarlyStoppingStrategy
@@ -16,6 +17,12 @@ import org.encog.neural.networks.BasicNetwork
 import org.encog.neural.networks.layers.BasicLayer
 import org.encog.neural.networks.training.propagation.resilient.ResilientPropagation
 import org.encog.util.concurrency.EngineConcurrency
+import weka.classifiers.meta.MultiClassClassifier
+import weka.classifiers.trees.RandomForest
+import weka.core.Attribute
+import weka.core.FastVector
+import weka.core.Instance
+import weka.core.Instances
 
 import static groovyx.gpars.GParsPool.withPool
 
@@ -62,18 +69,67 @@ class PredictMatchesMain {
 
     log.info("Computing features for training data set...")
     def trainingData = featureSet.computeDataSet(trainingMatches)
+    def wekaTrainingData = toWekaInstances(trainingData)
+
     log.info("Computing features for cross-validation data set...")
     def validationData = featureSet.computeDataSet(validationMatches)
 
-    log.info("Start training...")
+    log.info("Start training of neural network (Encog)...")
     def network = createNeuralNetwork(trainingData)
     trainNetwork(network, trainingData, validationData)
 
-    log.info("Evaluating network performance on test data...")
+    log.info("Start training of random forest...")
+    def randomForest = new RandomForest()
+    randomForest.setNumTrees(100)
+    randomForest.buildClassifier(wekaTrainingData)
+
+    log.info("Start training of multi class classifier (logistic)...")
+    def multiClassLogistic = new MultiClassClassifier()
+    multiClassLogistic.buildClassifier(wekaTrainingData)
+
+    log.info("Evaluating classifiers...")
     testNetwork(network, testMatches, featureSet)
+    testWekaClassifier("Random Forest", randomForest, testMatches, featureSet)
+    testWekaClassifier("Multi Class Classifier (Logistic)", multiClassLogistic, testMatches, featureSet)
     testBookie(testMatches)
 
     EngineConcurrency.getInstance().shutdown(2000L)
+  }
+
+  private static Instances toWekaInstances(MLDataSet dataPairs) {
+    def classificationResult = new FastVector(3)
+    classificationResult.addElement("HOME")
+    classificationResult.addElement("DRAW")
+    classificationResult.addElement("AWAY")
+
+    def numberColumns = dataPairs.getInputSize() + 1
+    def attributes = new FastVector(numberColumns)
+    attributes.addElement(new Attribute("classification", classificationResult))
+    for (int i = 0; i < dataPairs.getInputSize(); i++) {
+      attributes.addElement(new Attribute("input-" + i))
+    }
+
+    Instances instances = new Instances("WekaInstances", attributes, dataPairs.size())
+    instances.setClassIndex(0)
+
+    for (MLDataPair data : dataPairs) {
+      def ideal = data.getIdealArray()
+      def idealOutput = "HOME"
+      if (ideal[1] > ideal[0] && ideal[1] > ideal[2]) {
+        idealOutput = "DRAW"
+      } else if (ideal[2] > ideal[0] && ideal[2] > ideal[1]) {
+        idealOutput = "AWAY"
+      }
+
+      def instance = new Instance(numberColumns)
+      instance.setValue((Attribute) attributes.elementAt(0), idealOutput)
+      for (int i = 0; i < data.getInputArray().length; i++) {
+        instance.setValue((Attribute) attributes.elementAt(i + 1), data.getInputArray()[i])
+      }
+      instances.add(instance)
+    }
+
+    instances
   }
 
   private static BasicNetwork createNeuralNetwork(MLDataSet trainingData) {
@@ -105,6 +161,33 @@ class PredictMatchesMain {
     }
     trainer.finishTraining()
     log.info("Finished training after {} iterations with best error rate of {}.", epoch, best)
+  }
+
+  private static void testWekaClassifier(classifierName, classifier, testMatches, featureSet) {
+    log.info("")
+    log.info(classifierName + " Performance:")
+    log.info("")
+    def instances = toWekaInstances(featureSet.computeDataSet(testMatches))
+    evaluatePredictions(testMatches, { match ->
+      MLData input = featureSet.computeInputData(match)
+      Instance instance = new Instance(input.size() + 1)
+      instance.setDataset(instances)
+
+      def idealOutput = "HOME"
+      if (match.isDraw()) {
+        idealOutput = "DRAW"
+      } else if (match.isAwayWin()) {
+        idealOutput = "AWAY"
+      }
+      instance.setValue(instances.attribute(0), idealOutput)
+
+      for (int i = 0; i < input.size(); i++) {
+        instance.setValue(instances.attribute(i + 1), input.getData(i))
+      }
+
+      double[] output = classifier.distributionForInstance(instance)
+      new MatchPrediction(match, output)
+    })
   }
 
   private static void testNetwork(network, testMatches, featureSet) {
