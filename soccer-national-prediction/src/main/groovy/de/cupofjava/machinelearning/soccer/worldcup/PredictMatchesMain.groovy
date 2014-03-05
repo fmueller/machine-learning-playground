@@ -18,6 +18,8 @@ import org.encog.neural.networks.layers.BasicLayer
 import org.encog.neural.networks.training.propagation.resilient.ResilientPropagation
 import org.encog.util.concurrency.EngineConcurrency
 import weka.classifiers.meta.MultiClassClassifier
+import weka.classifiers.trees.J48
+import weka.classifiers.trees.LMT
 import weka.classifiers.trees.RandomForest
 import weka.core.Attribute
 import weka.core.FastVector
@@ -78,19 +80,36 @@ class PredictMatchesMain {
     def network = createNeuralNetwork(trainingData)
     trainNetwork(network, trainingData, validationData)
 
+    log.info("Start training of multi class classifier (logistic)...")
+    def multiClassLogistic = new MultiClassClassifier()
+    multiClassLogistic.buildClassifier(wekaTrainingData)
+
+    log.info("Start training of decision tree (unpruned)...")
+    def treeUnpruned = new J48()
+    treeUnpruned.setUnpruned(true)
+    treeUnpruned.buildClassifier(wekaTrainingData)
+
+    log.info("Start training of decision tree (pruned)...")
+    def treePruned = new J48()
+    treePruned.setUnpruned(false)
+    treePruned.buildClassifier(wekaTrainingData)
+
+    log.info("Start training of LMT decision tree...")
+    def lmtTree = new LMT()
+    lmtTree.buildClassifier(wekaTrainingData)
+
     log.info("Start training of random forest...")
     def randomForest = new RandomForest()
     randomForest.setNumTrees(100)
     randomForest.buildClassifier(wekaTrainingData)
 
-    log.info("Start training of multi class classifier (logistic)...")
-    def multiClassLogistic = new MultiClassClassifier()
-    multiClassLogistic.buildClassifier(wekaTrainingData)
-
     log.info("Evaluating classifiers...")
     testNetwork(network, testMatches, featureSet)
-    testWekaClassifier("Random Forest", randomForest, testMatches, featureSet)
     testWekaClassifier("Multi Class Classifier (Logistic)", multiClassLogistic, testMatches, featureSet)
+    testWekaClassifier("Decision Tree (unpruned)", treeUnpruned, testMatches, featureSet)
+    testWekaClassifier("Decision Tree (pruned)", treePruned, testMatches, featureSet)
+    testWekaClassifier("LMT Decision Tree", lmtTree, testMatches, featureSet)
+    testWekaClassifier("Random Forest", randomForest, testMatches, featureSet)
     testBookie(testMatches)
 
     EngineConcurrency.getInstance().shutdown(2000L)
