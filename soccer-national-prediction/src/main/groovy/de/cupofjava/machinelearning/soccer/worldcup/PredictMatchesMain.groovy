@@ -185,7 +185,10 @@ class PredictMatchesMain {
         instance.setValue(instances.attribute(i + 1), input.getData(i))
       }
 
-      double[] output = classifier.distributionForInstance(instance)
+      double[] output
+      synchronized (classifier) {
+        output = classifier.distributionForInstance(instance)
+      }
       new MatchPrediction(match, output)
     })
   }
@@ -219,13 +222,20 @@ class PredictMatchesMain {
     def predictedDraw = 0
     def predictedAwayWin = 0
 
+    def units = 0.0
+
     for (MatchPrediction prediction : predictions) {
       if (prediction.isCorrectHomeWin()) {
         correctHomeWin++
+        units += prediction.getMatch().getHomeWinOdds() - 1.0
       } else if (prediction.isCorrectDraw()) {
         correctDraw++
+        units += prediction.getMatch().getDrawOdds() - 1.0
       } else if (prediction.isCorrectAwayWin()) {
         correctAwayWin++
+        units += prediction.getMatch().getAwayWinOdds() - 1.0
+      } else {
+        units -= 1.0
       }
 
       if (prediction.isHomeWinPredicted()) {
@@ -266,6 +276,8 @@ class PredictMatchesMain {
     def f1Calculator = new F1Calculator(predictions)
     log.info("F1 Score: {}", f1Calculator.computeDefault())
     log.info("Weighted F1 Score: {}", f1Calculator.computeWeighted())
+
+    log.info("Units: {}", units)
   }
 
   private static Collection<Match> chooseRandomMatches(matches, numberOfMatches) {
