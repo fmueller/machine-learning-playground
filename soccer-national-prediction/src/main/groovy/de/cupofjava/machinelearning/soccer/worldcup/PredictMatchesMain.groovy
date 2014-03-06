@@ -30,7 +30,7 @@ import static groovyx.gpars.GParsPool.withPool
 
 /**
  * This project is a predictor for matches between national soccer teams.
- * For that, a neural network is trained and evaluated on a test data set.
+ * For that, many classifiers are trained and evaluated on a test data set.
  * Afterwards the performance of the bookmakers is evaluated on this
  * test data set.
  *
